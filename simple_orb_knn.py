@@ -1,5 +1,5 @@
 import cv2
-
+'''ORB+KNN'''
 img1 = cv2.imread('imgs/WechatIMG100.jpeg', cv2.IMREAD_GRAYSCALE)
 img2 = cv2.imread('imgs/WechatIMG101.jpeg', cv2.IMREAD_GRAYSCALE)
 
