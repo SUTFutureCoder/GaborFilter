@@ -14,7 +14,7 @@ def get_match_num(matches, ratio):
 
 
 img1 = cv2.imread('imgs/WechatIMG100.jpeg', cv2.IMREAD_GRAYSCALE)
-img2 = cv2.imread('imgs/WechatIMG101.jpeg', cv2.IMREAD_GRAYSCALE)
+img2 = cv2.imread('imgs/-9lddQ5-6xk1ZgT3cSrs-ku.jpg', cv2.IMREAD_GRAYSCALE)
 
 # 创建SIFT特征提取器
 sift = cv2.xfeatures2d.SIFT_create()
@@ -28,7 +28,7 @@ kp1, des1 = sift.detectAndCompute(img1, None)
 kp2, des2 = sift.detectAndCompute(img2, None)
 
 matches = flann.knnMatch(des1, des2, k=2) # 匹配特征点，为了筛选匹配点，指定k为2，为样本图的每个特征点，返回两个匹配
-match_num, matches_mask = get_match_num(matches, 0.7) # 通过比率条件，计算出匹配程度
+match_num, matches_mask = get_match_num(matches, 0.5) # 通过比率条件，计算出匹配程度
 match_ratio = match_num * 100 / len(matches)
 
 draw_params = dict(

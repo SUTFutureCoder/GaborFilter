@@ -17,10 +17,10 @@ def build_filters():
 
 
 def process(img, filters):
-  accum = np.zeros_like(img)
+  accum = np.zeros_like(img) # 初始化img一样大小的矩阵
   for kern in filters:
-    fimg = cv2.filter2D(img, cv2.CV_8UC3, kern)
-    np.maximum(accum, fimg, accum)
+    fimg = cv2.filter2D(img, cv2.CV_8UC3, kern) # 2D滤波函数 kern为滤波模板
+    np.maximum(accum, fimg, accum) # 参数1与参数2逐位比较 取大者存入参数3 这里就是将文理特征显化更加明显
   return accum
 
 
@@ -44,9 +44,9 @@ def getMatchNum(matches, ratio):
 
 
 filters = build_filters()
-image1 = cv2.imread('img/001_1.bmp')
+image1 = cv2.imread('img/003_1.bmp', cv2.IMREAD_GRAYSCALE)
 img1_gabor = getGabor(image1, filters)
-image2 = cv2.imread('img/003_2.bmp')
+image2 = cv2.imread('img/003_5.bmp', cv2.IMREAD_GRAYSCALE)
 img2_gabor = getGabor(image2, filters)
 
 # 创建SIFT特征提取器
@@ -58,29 +58,33 @@ searchParams = dict(checks=50)
 flann = cv2.FlannBasedMatcher(indexParams, searchParams)
 
 pl.figure(2)
-img1kp = []
-img1des = []
+img1kp = [0] * 32
+img1des = [0] * 32
 for res1 in range(len(img1_gabor)):
   pl.subplot(8, 6, res1 + 1)
 
   kp1, des1 = sift.detectAndCompute(img1_gabor[res1], None)  # 提取图片特征
-  img1kp.append(kp1)
-  img1des.append(des1)
+  img1kp[res1] = kp1
+  img1des[res1] = des1
 
   img1 = cv2.drawKeypoints(img1_gabor[res1], kp1, image1, color=(255, 0, 255))
   pl.imshow(img1, cmap='gray')
 
-img2kp = []
-img2des = []
+img2kp = [0] * 32
+img2des = [0] * 32
 comparisonImageList = []
 for res2 in range(len(img2_gabor)):
   pl.subplot(8, 6, len(img1_gabor) + res2 + 1)
-
+  if img1des[res2] is 0 or img1_gabor[res2] is 0:
+    continue
   kp2, des2 = sift.detectAndCompute(img2_gabor[res2], None)  # 提取对比图片的特征
   if des2 is None:
     continue
-  matches = flann.knnMatch(img1des[res2], des2, k=2)  # 匹配特征点，为了删除匹配点，指定k=2，对样本图每个特征点，返回两个匹配
-  (matchNum, matchesMask) = getMatchNum(matches, 0.95)  # 通过比率条件，计算匹配度
+  try:
+    matches = flann.knnMatch(img1des[res2], des2, k=2)  # 匹配特征点，为了删除匹配点，指定k=2，对样本图每个特征点，返回两个匹配
+  except BaseException:
+    continue
+  (matchNum, matchesMask) = getMatchNum(matches, 0.9)  # 通过比率条件，计算匹配度
   matchRatio = matchNum * 100 / len(matches)
   print(str(res2)+" "+str(matchRatio) + "\n")
   drawParams = dict(matchColor=(0, 255, 0),
@@ -91,8 +95,8 @@ for res2 in range(len(img2_gabor)):
                                        **drawParams)
   comparisonImageList.append((comparisonImage, matchRatio))
 
-  img2kp.append(kp2)
-  img2des.append(des2)
+  img2kp[res2] = kp2
+  img2des[res2] = des2
 
   img2 = cv2.drawKeypoints(img2_gabor[res2], kp2, image2, color=(255, 0, 255))
   pl.imshow(img2, cmap='gray')
