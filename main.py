@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import pylab as pl
+import matplotlib.pyplot as plt
 
 
 def build_filters():
@@ -9,7 +10,7 @@ def build_filters():
   lamda = np.pi / 2
   for theta in np.arange(0, np.pi, np.pi / 4):
     for K in range(6):
-      kern = cv2.getGaborKernel((ksize[K], ksize[K]), 1.0, theta, lamda, 0.5, 0, ktype=cv2.CV_32F)
+      kern = cv2.getGaborKernel((ksize[K], ksize[K]), 1.4045, theta, lamda, 0.5, 0, ktype=cv2.CV_32F)
       # kern = cv2.getGaborKernel((31, 31), 3.3, theta, 18.3, 4.5, 0.89, ktype=cv2.CV_32F)
       kern /= 1.5 * kern.sum()
       filters.append(kern)
@@ -46,7 +47,7 @@ def getMatchNum(matches, ratio):
 filters = build_filters()
 image1 = cv2.imread('img/003_1.bmp', cv2.IMREAD_GRAYSCALE)
 img1_gabor = getGabor(image1, filters)
-image2 = cv2.imread('img/003_5.bmp', cv2.IMREAD_GRAYSCALE)
+image2 = cv2.imread('img/003_2.bmp', cv2.IMREAD_GRAYSCALE)
 img2_gabor = getGabor(image2, filters)
 
 # 创建SIFT特征提取器
@@ -57,24 +58,31 @@ indexParams = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
 searchParams = dict(checks=50)
 flann = cv2.FlannBasedMatcher(indexParams, searchParams)
 
-pl.figure(2)
+# pl.figure(2)
+# pl.figure(8)
+
+
 img1kp = [0] * 32
 img1des = [0] * 32
 for res1 in range(len(img1_gabor)):
-  pl.subplot(8, 6, res1 + 1)
-
+  plt.figure('gabor', figsize=(8, 8))
+  plt.subplot(121)
+  plt.title('filt_imag')
+  # pl.subplot(8, 6, res1 + 1)
   kp1, des1 = sift.detectAndCompute(img1_gabor[res1], None)  # 提取图片特征
   img1kp[res1] = kp1
   img1des[res1] = des1
 
   img1 = cv2.drawKeypoints(img1_gabor[res1], kp1, image1, color=(255, 0, 255))
-  pl.imshow(img1, cmap='gray')
+  plt.imshow(img1)
+  plt.show()
+  # pl.imshow(img1, cmap='gray')
 
 img2kp = [0] * 32
 img2des = [0] * 32
 comparisonImageList = []
 for res2 in range(len(img2_gabor)):
-  pl.subplot(8, 6, len(img1_gabor) + res2 + 1)
+  # pl.subplot(8, 6, len(img1_gabor) + res2 + 1)
   if img1des[res2] is 0 or img1_gabor[res2] is 0:
     continue
   kp2, des2 = sift.detectAndCompute(img2_gabor[res2], None)  # 提取对比图片的特征
@@ -99,6 +107,6 @@ for res2 in range(len(img2_gabor)):
   img2des[res2] = des2
 
   img2 = cv2.drawKeypoints(img2_gabor[res2], kp2, image2, color=(255, 0, 255))
-  pl.imshow(img2, cmap='gray')
+  # pl.imshow(img2, cmap='gray')
 
-pl.show()
+# pl.show()
